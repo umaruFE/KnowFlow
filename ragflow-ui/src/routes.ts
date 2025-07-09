@@ -87,18 +87,6 @@ const routes = [
         component: '@/pages/chat',
       },
       {
-        path: '/taxQA',
-        component: '@/pages/chat/QA',
-      },
-      {
-        path: '/taxQB',
-        component: '@/pages/chat/QA',
-      },
-      {
-        path: '/taxQC',
-        component: '@/pages/chat/QA',
-      },
-      {
         path: '/write',
         component: '@/pages/write',
       },
