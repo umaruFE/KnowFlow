@@ -12,6 +12,14 @@ import { ReactComponent as Knowledge } from '@/assets/svg/leftBar/knowledge.svg'
 import { ReactComponent as KnowledgeActive } from '@/assets/svg/leftBar/knowledgeActive.svg';
 import { ReactComponent as Search } from '@/assets/svg/leftBar/search.svg';
 import { ReactComponent as SearchActive } from '@/assets/svg/leftBar/searchActive.svg';
+import { ReactComponent as TaxIncentives } from '@/assets/svg/leftBar/taxIncentives.svg';
+import { ReactComponent as TaxIncentivesActive } from '@/assets/svg/leftBar/taxIncentivesActive.svg';
+import { ReactComponent as Subsidies } from '@/assets/svg/leftBar/subsidies.svg';
+import { ReactComponent as SubsidiesActive } from '@/assets/svg/leftBar/subsidiesActive.svg';
+import { ReactComponent as IndustryRegulations } from '@/assets/svg/leftBar/industryRegulations.svg';
+import { ReactComponent as IndustryRegulationsActive } from '@/assets/svg/leftBar/industryRegulationsActive.svg';
+import { ReactComponent as Write } from '@/assets/svg/leftBar/write.svg';
+import { ReactComponent as WriteActive } from '@/assets/svg/leftBar/writeActive.svg';
 
 import { useTranslate } from '@/hooks/common-hooks';
 import { useFetchAppConf } from '@/hooks/logic-hooks';
@@ -40,24 +48,51 @@ const RagHeader = () => {
     () => [
       { path: '/chat', name: t('chat'), icon: Chat, iconActive: ChatActive },
       {
+        path: `/taxQA`,
+        name: t('taxIncentivesQA'),
+        icon: TaxIncentives,
+        iconActive: TaxIncentivesActive,
+        state: { name: t('taxIncentivesQA') + '助理' }
+      },
+      {
+        path: `/taxQB`,
+        name: t('specialSubsidiesQA'),
+        icon: Subsidies,
+        iconActive: SubsidiesActive,
+        state: { name: t('specialSubsidiesQA') + '助理' }
+      },
+      {
+        path: `/taxQC`,
+        name: t('industryRegulations'),
+        icon: IndustryRegulations,
+        iconActive: IndustryRegulationsActive,
+        state: { name: t('industryRegulations') + '助理' }
+      },
+      {
         path: '/knowledge',
         name: t('knowledgeBase'),
         icon: Knowledge,
         iconActive: KnowledgeActive,
       },
       {
-        path: '/search',
-        name: t('search'),
-        icon: Search,
-        iconActive: SearchActive,
+        path: '/write',
+        name: t('write'),
+        icon: Write,
+        iconActive: WriteActive,
       },
-      { path: '/flow', name: t('flow'), icon: Flow, iconActive: FlowActive },
-      {
-        path: '/file',
-        name: t('fileManager'),
-        icon: File,
-        iconActive: FileActive,
-      },
+      // {
+      //   path: '/search',
+      //   name: t('search'),
+      //   icon: Search,
+      //   iconActive: SearchActive,
+      // },
+      // { path: '/flow', name: t('flow'), icon: Flow, iconActive: FlowActive },
+      // {
+      //   path: '/file',
+      //   name: t('fileManager'),
+      //   icon: File,
+      //   iconActive: FileActive,
+      // },
     ],
     [t],
   );
@@ -69,10 +104,15 @@ const RagHeader = () => {
   }, [pathname, tagsData]);
 
   const handleChange = useCallback(
-    (path: string): MouseEventHandler =>
+    (path: string, state: Object): MouseEventHandler =>
       (e) => {
         e.preventDefault();
-        navigate(path);
+        if(state) {
+          sessionStorage.setItem('routeState', JSON.stringify(state));
+          navigate(path);
+        }else {
+          navigate(path);
+        }
       },
     [navigate],
   );
@@ -114,7 +154,7 @@ const RagHeader = () => {
               }
               key={item.name}
             >
-              <a onClick={handleChange(item.path)}>
+              <a onClick={handleChange(item.path, item.state)}>
                 {item.name === currentPath ? (
                   <item.iconActive
                     className={styles.radioButtonIcon}

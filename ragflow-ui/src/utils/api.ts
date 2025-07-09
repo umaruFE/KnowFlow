@@ -30,6 +30,8 @@ export default {
   delete_llm: `${api_host}/llm/delete_llm`,
   deleteFactory: `${api_host}/llm/delete_factory`,
 
+  // 文档撰写模式中的问答API
+  writeChat: `${api_host}/conversation/writechat`,
   // knowledge base
   kb_list: `${api_host}/kb/list`,
   create_kb: `${api_host}/kb/create`,

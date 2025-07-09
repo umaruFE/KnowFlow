@@ -37,7 +37,7 @@ import { SharedFrom } from '@/constants/chat';
 import {
   useClickConversationCard,
   useClickDialogCard,
-  useFetchNextDialogList,
+  useFetchNextDialogListById,
   useGetChatSearchParams,
 } from '@/hooks/chat-hooks';
 import { useTranslate } from '@/hooks/common-hooks';
@@ -49,7 +49,9 @@ import styles from './index.less';
 const { Text } = Typography;
 
 const Chat = () => {
-  const { data: dialogList, loading: dialogLoading } = useFetchNextDialogList();
+  const stateStr = sessionStorage.getItem('routeState');
+  const { name } = stateStr ? JSON.parse(stateStr) : {};
+  const { data: dialogList, loading: dialogLoading } = useFetchNextDialogListById(name);
   const { onRemoveDialog } = useDeleteDialog();
   const { onRemoveConversation } = useDeleteConversation();
   const { handleClickDialog } = useClickDialogCard();
@@ -186,18 +188,18 @@ const Chat = () => {
           </Space>
         ),
       },
-      // { type: 'divider' },
-      // {
-      //   key: '3',
-      //   onClick: handleShowOverviewModal(dialog),
-      //   label: (
-      //     <Space>
-      //       {/* <KeyOutlined /> */}
-      //       <PictureInPicture2 className="size-4" />
-      //       {t('embedIntoSite', { keyPrefix: 'common' })}
-      //     </Space>
-      //   ),
-      // },
+      { type: 'divider' },
+      {
+        key: '3',
+        onClick: handleShowOverviewModal(dialog),
+        label: (
+          <Space>
+            {/* <KeyOutlined /> */}
+            <PictureInPicture2 className="size-4" />
+            {t('embedIntoSite', { keyPrefix: 'common' })}
+          </Space>
+        ),
+      },
     ];
 
     return appItems;
@@ -233,7 +235,7 @@ const Chat = () => {
 
   return (
     <Flex className={styles.chatWrapper}>
-      <Flex className={styles.chatAppWrapper}>
+      {/* <Flex className={styles.chatAppWrapper}>
         <Flex flex={1} vertical>
           <Button
             type="primary"
@@ -291,7 +293,7 @@ const Chat = () => {
             </Spin>
           </Flex>
         </Flex>
-      </Flex>
+      </Flex> */}
       <Flex className={styles.chatTitleWrapper}>
         {/* <Flex
             justify={'space-between'}

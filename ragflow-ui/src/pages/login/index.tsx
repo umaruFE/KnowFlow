@@ -7,6 +7,7 @@ import { Icon, useNavigate } from 'umi';
 
 import { Domain } from '@/constants/common';
 import styles from './index.less';
+import { appName } from '@/conf.json';
 
 const Login = () => {
   const [title, setTitle] = useState('login');
@@ -70,10 +71,10 @@ const Login = () => {
           <div className={styles.loginTitle}>
             <div className={styles.loginLogo}>
               <div className={styles.logo}></div>
-              <div className={styles.name}>KnowFlow</div>
+              <div className={styles.name}>{appName}</div>
             </div>
             <span>
-              {title === 'login' ? '很高兴再次见到您' : '很高兴您加入'}
+              {/* {title === 'login' ? '很高兴再次见到您' : '很高兴您加入'} */}
               {/* {title === 'login'
                 ? t('loginDescription')
                 : t('registerDescription')} */}
@@ -122,22 +123,22 @@ const Login = () => {
               </Form.Item>
             )} */}
             <div>
-              {title === 'login' && (
+              {/* {title === 'login' && (
                 <div>
                   {'没有账号?'}
                   <Button type="link" onClick={changeTitle}>
                     {'注册'}
                   </Button>
                 </div>
-              )}
-              {title === 'register' && (
+              )} */}
+              {/* {title === 'register' && (
                 <div>
                   {'已有账号?'}
                   <Button type="link" onClick={changeTitle}>
                     {'去登录'}
                   </Button>
                 </div>
-              )}
+              )} */}
             </div>
             <Button
               type="primary"

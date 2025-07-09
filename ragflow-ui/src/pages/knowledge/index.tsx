@@ -89,14 +89,16 @@ const KnowledgeList = () => {
               <div className={styles.addDesc}>创建知识库</div>
             </div>
 
-            {nextList.map((item: any, index: number) => {
-              return (
-                <KnowledgeCard
-                  item={item}
-                  key={`${item?.name}-${index}`}
-                ></KnowledgeCard>
-              );
-            })}
+            {nextList
+              .filter((x) => x.nickname !== 'admin')
+              .map((item: any, index: number) => {
+                return (
+                  <KnowledgeCard
+                    item={item}
+                    key={`${item?.name}-${index}`}
+                  ></KnowledgeCard>
+                );
+              })}
           </Flex>
         </InfiniteScroll>
       </Spin>

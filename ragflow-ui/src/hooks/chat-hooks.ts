@@ -30,7 +30,6 @@ import { history, useSearchParams } from 'umi';
 export const useClickDialogCard = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setSearchParams] = useSearchParams();
-
   const newQueryParameters: URLSearchParams = useMemo(() => {
     return new URLSearchParams();
   }, []);
@@ -77,6 +76,7 @@ export const useGetChatSearchParams = () => {
     conversationId:
       currentQueryParameters.get(ChatSearchParams.ConversationId) || '',
     isNew: currentQueryParameters.get(ChatSearchParams.isNew) || '',
+    id: currentQueryParameters.get('id') || '', // 新增id参数
   };
 };
 
@@ -100,22 +100,63 @@ export const useFetchNextDialogList = () => {
     queryFn: async (...params) => {
       console.log('🚀 ~ queryFn: ~ params:', params);
       const { data } = await chatService.listDialog();
+      const exist = ['税赋优惠助理', '专项补贴助理', '行业法规助理'];
 
       if (data.code === 0) {
         const list: IDialog[] = data.data;
-        if (list.length > 0) {
-          if (list.every((x) => x.id !== dialogId)) {
+        const notExistList = list.filter((x) => !exist.includes(x.name))
+        if (notExistList.length > 0) {
+          if (notExistList.every((x) => x.id !== dialogId)) {
             handleClickDialog(data.data[0].id);
           }
         } else {
           history.push('/chat');
         }
       }
-
-      return data?.data ?? [];
+      const dataFilter = data.data.filter((x:any) => !exist.includes(x.name))
+      return dataFilter ?? [];
     },
   });
 
+  return { data, loading, refetch };
+};
+
+
+export const useFetchNextDialogListById = (dialogName?: string) => {
+  const { handleClickDialog } = useClickDialogCard();
+  const { dialogId } = useGetChatSearchParams();
+  const {
+    data,
+    isFetching: loading,
+    refetch,
+  } = useQuery<IDialog[]>({
+    queryKey: ['fetchDialogList', dialogId],
+    initialData: [],
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    queryFn: async (...params) => {
+      console.log('🚀 ~ queryFn: ~ params:', params);
+      const { data } = await chatService.listDialog();
+
+      if (data.code === 0) {
+        const list: IDialog[] = data.data;
+        const existList = list.filter((x) => dialogName === x.name)
+        debugger
+        if (existList.length > 0) {
+          if (existList.every((x) => x.id !== dialogId)) {
+            if(existList[0] && existList[0].id) {
+              handleClickDialog(existList[0].id);
+            }
+          }
+        } else {
+          history.push('/chat');
+        }
+      }
+
+      const dataFilter = data.data.filter((x:any) => dialogName === x.name)
+      return dataFilter ?? [];
+    },
+  });
   return { data, loading, refetch };
 };
 
