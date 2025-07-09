@@ -90,7 +90,6 @@ const KnowledgeList = () => {
             </div>
 
             {nextList
-              .filter((x) => x.nickname !== 'admin')
               .map((item: any, index: number) => {
                 return (
                   <KnowledgeCard

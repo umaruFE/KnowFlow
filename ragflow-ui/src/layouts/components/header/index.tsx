@@ -48,27 +48,6 @@ const RagHeader = () => {
     () => [
       { path: '/chat', name: t('chat'), icon: Chat, iconActive: ChatActive },
       {
-        path: `/taxQA`,
-        name: t('taxIncentivesQA'),
-        icon: TaxIncentives,
-        iconActive: TaxIncentivesActive,
-        state: { name: t('taxIncentivesQA') + '助理' }
-      },
-      {
-        path: `/taxQB`,
-        name: t('specialSubsidiesQA'),
-        icon: Subsidies,
-        iconActive: SubsidiesActive,
-        state: { name: t('specialSubsidiesQA') + '助理' }
-      },
-      {
-        path: `/taxQC`,
-        name: t('industryRegulations'),
-        icon: IndustryRegulations,
-        iconActive: IndustryRegulationsActive,
-        state: { name: t('industryRegulations') + '助理' }
-      },
-      {
         path: '/knowledge',
         name: t('knowledgeBase'),
         icon: Knowledge,
@@ -139,7 +118,7 @@ const RagHeader = () => {
           onClick={handleLogoClick}
           className={styles.logoWrapper}
         >
-          <img src="/logo.png" alt="" className={styles.appIcon} />
+          <img src="/logo.svg" alt="" className={styles.appIcon} />
           {/* <span className={styles.appName}>{appConf.appName}</span> */}
         </Space>
       </a>

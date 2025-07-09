@@ -70,9 +70,6 @@ export default {
       fileManager: '文件库',
       flow: 'Agent',
       search: '搜索',
-      taxIncentivesQA: '税赋优惠',
-      specialSubsidiesQA: '专项补贴',
-      industryRegulations: '行业法规',
       write: '文档撰写',
     },
     knowledgeList: {

@@ -54,7 +54,7 @@ const methods = {
   },
   getList: {
     url: kb_list,
-    method: 'get',
+    method: 'post',
   },
   // document manager
   get_document_list: {
@@ -172,11 +172,11 @@ export function getKnowledgeGraph(knowledgeId: string) {
 export const listDataset = (
   params?: any,
   body?: any,
-) => request.get(api.kb_list, { data: body || {}, params });
+) => request.post(api.kb_list, { data: body || {}, params });
 
 export const listDocument = (
   params?: any,
   body?: any,
-) => request.get(api.get_document_list, { data: body || {}, params });
+) => request.post(api.get_document_list, { data: body || {}, params });
 
 export default kbService;

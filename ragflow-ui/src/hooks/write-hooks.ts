@@ -1,7 +1,7 @@
 import { Authorization } from '@/constants/authorization';
 import { IAnswer } from '@/interfaces/database/chat';
 import { IKnowledge } from '@/interfaces/database/knowledge';
-import kbService from '@/services/knowledge-service';
+import kbService, { listDataset } from '@/services/knowledge-service';
 import api from '@/utils/api';
 import { getAuthorization } from '@/utils/authorization-util';
 import { useQuery } from '@tanstack/react-query';
@@ -20,7 +20,7 @@ export const useFetchKnowledgeList = (
     initialData: [],
     gcTime: 0,
     queryFn: async () => {
-      const { data } = await kbService.getList();
+      const { data } = await listDataset();
       const list = data?.data?.kbs ?? [];
       return shouldFilterListWithoutDocument
         ? list.filter((x: IKnowledge) => x.chunk_num > 0)

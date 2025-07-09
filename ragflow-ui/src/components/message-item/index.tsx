@@ -109,11 +109,11 @@ const MessageItem = ({
         >
           {visibleAvatar &&
             (item.role === MessageType.User ? (
-              <Avatar size={40} src={avatar ?? '/logo.png'} />
+              <Avatar size={40} src={avatar ?? '/logo.svg'} />
             ) : avatarDialog ? (
               <Avatar size={40} src={avatarDialog} />
             ) : (
-              <Avatar size={40} src="/logo.png" />
+              <Avatar size={40} src="/logo.svg" />
             ))}
 
           <Flex vertical gap={8} flex={1}>
@@ -128,7 +128,8 @@ const MessageItem = ({
             >
               <MarkdownContent
                 loading={loading}
-                content={item.content}
+                // content={item.content}
+                content={item.content.replace(/\[ID:(\d+)\]/g, '')}
                 reference={reference}
                 clickDocumentButton={clickDocumentButton}
               ></MarkdownContent>
