@@ -1,5 +1,7 @@
 import { ReactComponent as ChatAppCube } from '@/assets/svg/chat-app-cube.svg';
 import RenameModal from '@/components/rename-modal';
+import chatService from '@/services/chat-service';
+import { getConversationId } from '@/utils/chat';
 import {
   AndroidOutlined,
   DeleteOutlined,
@@ -28,6 +30,7 @@ import {
   useHandleItemHover,
   useRenameConversation,
   useSelectDerivedConversationList,
+  useSetConversation
 } from './hooks';
 
 import EmbedModal from '@/components/api-service/embed-modal';
@@ -89,6 +92,7 @@ const Chat = () => {
   const [controller, setController] = useState(new AbortController());
   const { showEmbedModal, hideEmbedModal, embedVisible, beta } =
     useShowEmbedModal();
+  const { setConversationEmpty } = useSetConversation();
 
   const handleAppCardEnter = (id: string) => () => {
     handleItemEnter(id);
@@ -140,10 +144,26 @@ const Chat = () => {
     };
 
   const handleDialogCardClick = useCallback(
-    (dialogId: string) => () => {
-      handleClickDialog(dialogId);
+    (dialogIdTemp: string) => () => {
+      // handleClickDialog(dialogId);
+      chatService
+        .listConversation({ dialogId: dialogIdTemp })
+        .then(({ data: currentConversationList }: { data: any[] }) => {
+          if (!currentConversationList?.data?.length) {
+            const newId = getConversationId();
+            setConversationEmpty('新对话', dialogIdTemp, true, newId);
+            handleClickDialog(dialogIdTemp);
+          } else {
+            handleClickDialog(dialogIdTemp);
+          }
+        });
     },
-    [handleClickDialog],
+    [
+      handleClickDialog,
+      conversationList,
+      conversationId,
+      handleClickConversation,
+    ],
   );
 
   const handleConversationCardClick = useCallback(
@@ -312,12 +332,11 @@ const Chat = () => {
               </div>
             </Tooltip>
           </Flex> */}
-        <div className={styles.chatTitleContent}>
+        {/* <div className={styles.chatTitleContent}>
           <Spin
             spinning={conversationLoading}
             wrapperClassName={styles.chatCol}
           >
-            {/* 增加一个固定的新增对话 */}
             <Card
               key="000"
               hoverable
@@ -377,7 +396,7 @@ const Chat = () => {
               </Card>
             ))}
           </Spin>
-        </div>
+        </div> */}
         <ChatContainer controller={controller}></ChatContainer>
       </Flex>
       {/* <Divider type={'vertical'} className={styles.divider}></Divider> */}
@@ -389,7 +408,14 @@ const Chat = () => {
           showModal={showDialogEditModal}
           hideModal={hideDialogEditModal}
           loading={dialogSettingLoading}
-          onOk={onDialogEditOk}
+          // onOk={onDialogEditOk}
+          onOk={(dialog) =>
+            onDialogEditOk(dialog, (ret) => {
+              if (ret.id) {
+                addTemporaryConversation(ret.id);
+              }
+            })
+          }
           clearDialog={clearDialog}
         ></ChatConfigurationModal>
       )}

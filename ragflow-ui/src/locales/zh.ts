@@ -405,7 +405,7 @@ General：实体和关系提取提示来自 GitHub - microsoft/graphrag：基于
     },
     chat: {
       newConversation: '新会话',
-      createAssistant: '新建助理',
+      createAssistant: '新建聊天',
       assistantSetting: '助理设置',
       promptEngine: '提示引擎',
       modelSetting: '模型设置',
