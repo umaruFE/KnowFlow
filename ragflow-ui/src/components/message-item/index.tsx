@@ -129,7 +129,7 @@ const MessageItem = ({
               <MarkdownContent
                 loading={loading}
                 // content={item.content}
-                content={item.content.replace(/\[ID:(\d+)\]/g, '')}
+                content={item.content.replace(/\[ID:(\d+)\]/g, '').replace(/\[ID:\]/g, '')}
                 reference={reference}
                 clickDocumentButton={clickDocumentButton}
               ></MarkdownContent>

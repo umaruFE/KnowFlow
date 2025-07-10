@@ -129,7 +129,7 @@ const AssistantSetting = ({
       >
         <Switch />
       </Form.Item>
-      <Form.Item
+      {/* <Form.Item
         label={t('keyword')}
         valuePropName="checked"
         name={['prompt_config', 'keyword']}
@@ -156,7 +156,7 @@ const AssistantSetting = ({
             {t('tavilyApiKeyHelp')}
           </Typography.Link>
         </div>
-      </Form.Item>
+      </Form.Item> */}
       <KnowledgeBaseItem
         required={false}
         onChange={handleChange}

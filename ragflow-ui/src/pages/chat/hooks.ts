@@ -164,7 +164,6 @@ export const useEditDialog = () => {
   const onDialogEditOk = useCallback(
     async (dialog: IDialog, callback?: () => void) => {
       const ret = await submitDialog(dialog);
-
       if (ret && ret.code === 0) {
         hideModal();
         callback?.(ret.data);

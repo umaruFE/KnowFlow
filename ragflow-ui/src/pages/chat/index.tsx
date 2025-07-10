@@ -152,9 +152,9 @@ const Chat = () => {
           if (!currentConversationList?.data?.length) {
             const newId = getConversationId();
             setConversationEmpty('新对话', dialogIdTemp, true, newId);
-            handleClickDialog(dialogIdTemp);
+            handleClickDialog(dialogIdTemp, newId);
           } else {
-            handleClickDialog(dialogIdTemp);
+            handleClickDialog(dialogIdTemp, conversationId);
           }
         });
     },

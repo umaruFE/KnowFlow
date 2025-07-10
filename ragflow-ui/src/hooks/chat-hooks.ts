@@ -35,13 +35,14 @@ export const useClickDialogCard = () => {
   }, []);
 
   const handleClickDialog = useCallback(
-    (dialogId: string) => {
-      newQueryParameters.set(ChatSearchParams.DialogId, dialogId);
-      // newQueryParameters.set(
-      //   ChatSearchParams.ConversationId,
-      //   EmptyConversationId,
-      // );
-      setSearchParams(newQueryParameters);
+    (dialogIdParam: string, conversationIdParam: string) => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const dialogId = searchParams.get(ChatSearchParams.DialogId);
+      console.log('dialogIdTemp:' + dialogIdParam + ',dialogId:' + dialogId);
+      if (dialogIdParam && dialogId !== dialogIdParam) {
+        newQueryParameters.set(ChatSearchParams.DialogId, dialogIdParam);
+        setSearchParams(newQueryParameters);
+      }
     },
     [newQueryParameters, setSearchParams],
   );
@@ -204,7 +205,7 @@ export const useSetNextDialog = () => {
           i18n.t(`message.${params.dialog_id ? 'modified' : 'created'}`),
         );
       }
-      return data?.code;
+      return data;
     },
   });
 

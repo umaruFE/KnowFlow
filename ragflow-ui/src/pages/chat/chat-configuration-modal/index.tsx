@@ -153,7 +153,7 @@ const ChatConfigurationModal = ({
       destroyOnClose
       afterClose={handleModalAfterClose}
     >
-      <Segmented
+      {/* <Segmented
         size={'large'}
         value={value}
         onChange={handleSegmentedChange}
@@ -163,7 +163,7 @@ const ChatConfigurationModal = ({
         }))}
         block
       />
-      <Divider></Divider>
+      <Divider></Divider> */}
       <Form
         {...layout}
         name="nest-messages"

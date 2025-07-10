@@ -99,7 +99,7 @@ const ParsingActionCell = ({
 
   return (
     <Space size={0}>
-      {isVirtualDocument || (
+      {/* {isVirtualDocument || (
         <Dropdown
           menu={{ items: chunkItems }}
           trigger={['click']}
@@ -109,7 +109,7 @@ const ParsingActionCell = ({
             <ToolOutlined size={20} />
           </Button>
         </Dropdown>
-      )}
+      )} */}
       <Tooltip title={t('rename', { keyPrefix: 'common' })}>
         <Button
           type="text"
