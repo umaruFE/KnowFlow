@@ -18,11 +18,45 @@ const App: React.FC = () => {
   } = theme.useToken();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
-  // 监听路由变化
+
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
+    console.log("=======================================1")
+    const observer = new MutationObserver((mutations) => {
+      const currentPath = location.pathname;
+       let targetElement = null;
+       
+       // 根据当前路由路径检测对应的元素
+       if (currentPath.startsWith('/chat')) {
+         targetElement = document.querySelector('[class^="chatWrapper"]');
+       } else if (currentPath.startsWith('/knowledge')) {
+         targetElement = document.querySelector('[class^="knowledge"]');
+       } else if (currentPath.startsWith('/write')) {
+         targetElement = document.querySelector('[class^="write"]');
+       }
+       
+       if (targetElement) {
+         setLoading(false);
+         console.log("=======================================2")
+         observer.disconnect();
+       }
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    const timeoutTimer = setTimeout(() => {
+    console.log("=======================================3")
+      setLoading(false);
+      observer.disconnect();
+    }, 2000);
+    
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutTimer);
+    };
   }, [location.pathname]);
       
   return (
@@ -48,7 +82,7 @@ const App: React.FC = () => {
           
         </Layout>
     </Layout>
-      </Spin>
+    </Spin>
   );
 };
 

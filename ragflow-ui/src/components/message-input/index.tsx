@@ -5,8 +5,26 @@ import {
   useRemoveNextDocument,
   useUploadAndParseDocument,
 } from '@/hooks/document-hooks';
+import {
+  CloseCircleOutlined,
+  InfoCircleOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import type { GetProp, UploadFile } from 'antd';
-import { Flex, Input, Typography, UploadProps } from 'antd';
+import { getExtension } from '@/utils/document-util';
+import { formatBytes } from '@/utils/file-util';
+import { 
+  Button,
+  Card,
+  Divider,
+  Flex,
+  Input,
+  List,
+  Space,
+  Spin,
+  Typography,
+  Upload,
+  UploadProps, } from 'antd';
 import get from 'lodash/get';
 import {
   ChangeEventHandler,
@@ -16,7 +34,10 @@ import {
   useRef,
   useState,
 } from 'react';
+import FileIcon from '../file-icon';
 import styles from './index.less';
+import { Paperclip, SendHorizontal } from 'lucide-react';
+
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 const { Text } = Typography;
@@ -220,15 +241,6 @@ const MessageInput = ({
         onCompositionEnd={handleCompositionEnd}
       />
       <div className={styles.sendQuestion}>
-        <div
-          className={styles.sendQuestionIcon}
-          onClick={handlePressEnter}
-          loading={sendLoading}
-          disabled={sendDisabled || sendLoading}
-        ></div>
-      </div>
-      {/* <Divider style={{ margin: '5px 30px 10px 0px' }} /> */}
-      {/* <Flex justify="space-between" align="center">
         {fileList.length > 0 && (
           <List
             grid={{
@@ -327,21 +339,23 @@ const MessageInput = ({
                 return false;
               }}
             >
-              <Button type={'primary'} disabled={disabled}>
-                <PaperClipOutlined />
-              </Button>
+              <div
+                className={styles.fileQuestionIcon}
+                disabled={disabled}
+              ></div>
+              
             </Upload>
           )}
-          <Button
-            type="primary"
-            onClick={handlePressEnter}
-            loading={sendLoading}
-            disabled={sendDisabled || isUploadingFile || sendLoading}
-          >
-            <SendOutlined />
-          </Button>
+          
         </Flex>
-      </Flex> */}
+
+        <div
+          className={styles.sendQuestionIcon}
+          onClick={handlePressEnter}
+          loading={sendLoading}
+          disabled={sendDisabled || sendLoading}
+        ></div>
+      </div>
     </Flex>
   );
 };

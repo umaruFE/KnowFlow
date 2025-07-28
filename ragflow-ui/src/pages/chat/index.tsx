@@ -104,44 +104,44 @@ const Chat = () => {
 
   const handleShowChatConfigurationModal =
     (dialogId?: string): any =>
-    (info: any) => {
-      info?.domEvent?.preventDefault();
-      info?.domEvent?.stopPropagation();
-      showDialogEditModal(dialogId);
-    };
+      (info: any) => {
+        info?.domEvent?.preventDefault();
+        info?.domEvent?.stopPropagation();
+        showDialogEditModal(dialogId);
+      };
 
   const handleRemoveDialog =
     (dialogId: string): MenuItemProps['onClick'] =>
-    ({ domEvent }) => {
-      domEvent.preventDefault();
-      domEvent.stopPropagation();
-      onRemoveDialog([dialogId]);
-    };
+      ({ domEvent }) => {
+        domEvent.preventDefault();
+        domEvent.stopPropagation();
+        onRemoveDialog([dialogId]);
+      };
 
   const handleShowOverviewModal =
     (dialog: IDialog): any =>
-    (info: any) => {
-      info?.domEvent?.preventDefault();
-      info?.domEvent?.stopPropagation();
-      setRecord(dialog);
-      showEmbedModal();
-    };
+      (info: any) => {
+        info?.domEvent?.preventDefault();
+        info?.domEvent?.stopPropagation();
+        setRecord(dialog);
+        showEmbedModal();
+      };
 
   const handleRemoveConversation =
     (conversationId: string): MenuItemProps['onClick'] =>
-    ({ domEvent }) => {
-      domEvent.preventDefault();
-      domEvent.stopPropagation();
-      onRemoveConversation([conversationId]);
-    };
+      ({ domEvent }) => {
+        domEvent.preventDefault();
+        domEvent.stopPropagation();
+        onRemoveConversation([conversationId]);
+      };
 
   const handleShowConversationRenameModal =
     (conversationId: string): MenuItemProps['onClick'] =>
-    ({ domEvent }) => {
-      domEvent.preventDefault();
-      domEvent.stopPropagation();
-      showConversationRenameModal(conversationId);
-    };
+      ({ domEvent }) => {
+        domEvent.preventDefault();
+        domEvent.stopPropagation();
+        showConversationRenameModal(conversationId);
+      };
 
   const handleDialogCardClick = useCallback(
     (dialogIdTemp: string) => () => {

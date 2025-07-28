@@ -5,6 +5,7 @@ import {
   useSendMessageWithSse,
 } from '@/hooks/write-hooks';
 
+import styles from './index.less';
 import { DeleteOutlined } from '@ant-design/icons';
 import {
   Button,
@@ -969,6 +970,7 @@ const Write = () => {
   // ... JSX 结构无变化，保持原样
   return (
     <Layout
+    className={styles.write}
       style={{
         display: 'flex',
         flexDirection: 'row',
