@@ -9,6 +9,8 @@ import {
   CloseCircleOutlined,
   InfoCircleOutlined,
   LoadingOutlined,
+  PaperClipOutlined,
+  SendOutlined
 } from '@ant-design/icons';
 import type { GetProp, UploadFile } from 'antd';
 import { getExtension } from '@/utils/document-util';
@@ -325,7 +327,7 @@ const MessageInput = ({
           style={{
             paddingRight: 10,
             paddingBottom: 10,
-            width: fileList.length > 0 ? '50%' : '100%',
+            width: '100%',
           }}
         >
           {showUploadIcon && (
@@ -335,26 +337,26 @@ const MessageInput = ({
               multiple={false}
               onRemove={handleRemove}
               showUploadList={false}
-              beforeUpload={() => {
-                return false;
-              }}
+              beforeUpload={() => false}
             >
-              <div
-                className={styles.fileQuestionIcon}
+              <Button
+                icon={<PaperClipOutlined />}
+                size="middle"
+                type="default"
                 disabled={disabled}
-              ></div>
-              
+              />
             </Upload>
           )}
           
+          <Button
+            icon={<SendOutlined />}
+            size="middle"
+            type="primary"
+            onClick={handlePressEnter}
+            loading={sendLoading}
+            disabled={sendDisabled || sendLoading}
+          />
         </Flex>
-
-        <div
-          className={styles.sendQuestionIcon}
-          onClick={handlePressEnter}
-          loading={sendLoading}
-          disabled={sendDisabled || sendLoading}
-        ></div>
       </div>
     </Flex>
   );
