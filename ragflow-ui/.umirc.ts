@@ -24,13 +24,13 @@ export default defineConfig({
     '@react-dev-inspector/umi4-plugin',
     '@umijs/plugins/dist/tailwindcss',
   ],
-  jsMinifier: 'none', // Fixed the issue that the page displayed an error after packaging lexical with terser
+  jsMinifier: 'terser', // Fixed the issue that the page displayed an error after packaging lexical with terser
   lessLoader: {
     modifyVars: {
       hack: `true; @import "~@/less/index.less";`,
     },
   },
-  devtool: 'source-map',
+  devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
   copy: [
     { from: 'src/conf.json', to: 'dist/conf.json' },
     { from: 'node_modules/monaco-editor/min/vs/', to: 'dist/vs/' },
