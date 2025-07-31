@@ -59,7 +59,7 @@ const KnowledgeAdding = () => {
   return (
     <>
       <div className={styles.container}>
-        <Siderbar></Siderbar>
+        {/* <Siderbar></Siderbar> */}
         <div className={styles.contentWrapper}>
           <Breadcrumb items={breadcrumbItems} />
           <div className={styles.content}>

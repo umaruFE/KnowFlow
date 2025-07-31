@@ -7,6 +7,7 @@ import {
   DownloadOutlined,
   EditOutlined,
   ToolOutlined,
+  EllipsisOutlined
 } from '@ant-design/icons';
 import { Button, Dropdown, MenuProps, Space, Tooltip } from 'antd';
 import { isParserRunning } from '../utils';
@@ -98,51 +99,33 @@ const ParsingActionCell = ({
   ];
 
   return (
-    <Space size={0}>
-      {/* {isVirtualDocument || (
-        <Dropdown
-          menu={{ items: chunkItems }}
-          trigger={['click']}
-          disabled={isRunning || record.parser_id === 'tag'}
-        >
-          <Button type="text" className={styles.iconButton}>
-            <ToolOutlined size={20} />
-          </Button>
-        </Dropdown>
-      )} */}
-      <Tooltip title={t('rename', { keyPrefix: 'common' })}>
-        <Button
-          type="text"
-          disabled={isRunning}
-          onClick={onShowRenameModal}
-          className={styles.iconButton}
-        >
-          <EditOutlined size={20} />
-        </Button>
-      </Tooltip>
-      <Tooltip title={t('delete', { keyPrefix: 'common' })}>
-        <Button
-          type="text"
-          disabled={isRunning}
-          onClick={onRmDocument}
-          className={styles.iconButton}
-        >
-          <DeleteOutlined size={20} />
-        </Button>
-      </Tooltip>
-      {isVirtualDocument || (
-        <Tooltip title={t('download', { keyPrefix: 'common' })}>
-          <Button
-            type="text"
-            disabled={isRunning}
-            onClick={onDownloadDocument}
-            className={styles.iconButton}
-          >
-            <DownloadOutlined size={20} />
-          </Button>
-        </Tooltip>
-      )}
-    </Space>
+    <Dropdown
+      menu={{
+        items: [
+          {
+            key: 'rename',
+            label: t('rename', { keyPrefix: 'common' }),
+            onClick: onShowRenameModal,
+            disabled: isRunning
+          },
+          {
+            key: 'delete',
+            label: t('delete', { keyPrefix: 'common' }),
+            onClick: onRmDocument,
+            disabled: isRunning
+          },
+          !isVirtualDocument && {
+            key: 'download',
+            label: t('download', { keyPrefix: 'common' }),
+            onClick: onDownloadDocument,
+            disabled: isRunning
+          }
+        ].filter(Boolean)
+      }}
+      trigger={['click']}
+    >
+      <EllipsisOutlined style={{ fontSize: 18 }} />
+    </Dropdown>
   );
 };
 

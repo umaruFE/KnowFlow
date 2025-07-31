@@ -195,6 +195,7 @@ export default {
       deleteDocumentConfirmContent:
         '该文档与知识图谱相关联。删除后，相关节点和关系信息将被删除，但图不会立即更新。更新图动作是在解析承载知识图谱提取任务的新文档的过程中执行的。',
       plainText: '简易',
+      baseOnKnowledge: '基于知识库',
     },
     knowledgeConfiguration: {
       titleDescription: '在这里更新您的知识库详细信息，尤其是解析方法。',

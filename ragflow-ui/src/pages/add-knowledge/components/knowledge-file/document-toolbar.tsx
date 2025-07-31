@@ -188,19 +188,19 @@ const DocumentToolbar = ({
 
   return (
     <div className={styles.filter}>
-      <Dropdown
+      {/* <Dropdown
         menu={{ items }}
         placement="bottom"
         arrow={false}
         disabled={disabled}
       >
-        <Button>
+        <Button style={{marginRight: '8px'}}>
           <Space>
             <b> {t('bulk')}</b>
             <DownOutlined />
           </Space>
         </Button>
-      </Dropdown>
+      </Dropdown> */}
       <Space>
         <Input
           placeholder={t('searchFiles')}

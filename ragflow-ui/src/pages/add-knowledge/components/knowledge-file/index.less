@@ -1,54 +1,57 @@
-.datasetWrapper {
-  padding: 30px 30px 0;
-  height: 100%;
+.thumbnailContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  min-height: calc(100vh - 200px);
 }
 
-.documentTable {
-  tbody {
-    // height: calc(100vh - 508px);
+.actionButtons {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  background: #fff;
+  padding: 4px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.thumbnailItem:hover .actionButtons {
+  opacity: 1;
+}
+
+.thumbnailItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    transform: translateY(-4px);
   }
 }
 
-.filter {
-  height: 32px;
-  display: flex;
-  margin: 10px 0;
-  justify-content: space-between;
-  padding: 24px 0;
-  align-items: center;
+.thumbnailImage {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.deleteIconWrapper {
-  width: 22px;
+.thumbnailIcon {
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.thumbnailName {
+  margin-top: 8px;
   text-align: center;
-}
-
-.img {
-  height: 24px;
-  width: 24px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.column {
-  min-width: 200px;
-}
-
-.toChunks {
-  cursor: pointer;
-}
-
-.pageInputNumber {
-  width: 220px;
-}
-
-.questionIcon {
-  margin-inline-start: 4px;
-  color: rgba(0, 0, 0, 0.45);
-  cursor: help;
-  writing-mode: horizontal-tb;
-}
-
-.nameText {
-  color: #1677ff;
+  font-size: 14px;
+  word-break: break-all;
 }

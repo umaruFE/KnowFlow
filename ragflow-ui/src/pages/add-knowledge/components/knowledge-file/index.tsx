@@ -7,8 +7,9 @@ import {
 import { useSetSelectedRecord } from '@/hooks/logic-hooks';
 import { useSelectParserList } from '@/hooks/user-setting-hooks';
 import { getExtension } from '@/utils/document-util';
-import { Divider, Flex, Switch, Table, Typography } from 'antd';
+import { Divider, Dropdown, Flex, Input, Switch, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CreateFileModal from './create-file-modal';
 import DocumentToolbar from './document-toolbar';
@@ -91,99 +92,11 @@ const KnowledgeFile = () => {
 
   const rowSelection = useGetRowSelection();
 
-  const columns: ColumnsType<IDocumentInfo> = [
-    {
-      title: t('name'),
-      dataIndex: 'name',
-      key: 'name',
-      fixed: 'left',
-      render: (text: any, { id, thumbnail, name }) => (
-        <div className={styles.toChunks} onClick={() => toChunk(id)}>
-          <Flex gap={10} align="center">
-            {thumbnail ? (
-              <img className={styles.img} src={thumbnail} alt="" />
-            ) : (
-              <SvgIcon
-                name={`file-icon/${getExtension(name)}`}
-                width={24}
-              ></SvgIcon>
-            )}
-            <Text ellipsis={{ tooltip: text }} className={styles.nameText}>
-              {text}
-            </Text>
-          </Flex>
-        </div>
-      ),
-    },
-    {
-      title: t('chunkNumber'),
-      dataIndex: 'chunk_num',
-      key: 'chunk_num',
-    },
-    {
-      title: t('uploadDate'),
-      dataIndex: 'create_time',
-      key: 'create_time',
-      render(value) {
-        return formatDate(value);
-      },
-    },
-    {
-      title: t('chunkMethod'),
-      dataIndex: 'parser_id',
-      key: 'parser_id',
-      render: (text) => {
-        return parserList.find((x) => x.value === text)?.label;
-      },
-    },
-    {
-      title: t('enabled'),
-      key: 'status',
-      dataIndex: 'status',
-      render: (_, { status, id }) => (
-        <>
-          <Switch
-            checked={status === '1'}
-            onChange={(e) => {
-              setDocumentStatus({ status: e, documentId: id });
-            }}
-          />
-        </>
-      ),
-    },
-    {
-      title: t('parsingStatus'),
-      dataIndex: 'run',
-      key: 'run',
-      render: (text, record) => {
-        return <ParsingStatusCell record={record}></ParsingStatusCell>;
-      },
-    },
-    {
-      title: t('action'),
-      key: 'action',
-      render: (_, record) => (
-        <ParsingActionCell
-          setCurrentRecord={setRecord}
-          showRenameModal={showRenameModal}
-          showChangeParserModal={showChangeParserModal}
-          showSetMetaModal={showSetMetaModal}
-          record={record}
-        ></ParsingActionCell>
-      ),
-    },
-  ];
-
-  const finalColumns = columns.map((x) => ({
-    ...x,
-    className: `${styles.column}`,
-  }));
-
   return (
     <div className={styles.datasetWrapper}>
-      <h3>{t('dataset')}</h3>
+      {/* <h3>{t('dataset')}</h3>
       <p>{t('datasetDescription')}</p>
-      <Divider></Divider>
+      <Divider></Divider> */}
       <DocumentToolbar
         selectedRowKeys={rowSelection.selectedRowKeys as string[]}
         showCreateModal={showCreateModal}
@@ -192,15 +105,31 @@ const KnowledgeFile = () => {
         searchString={searchString}
         handleInputChange={handleInputChange}
       ></DocumentToolbar>
-      <Table
-        rowKey="id"
-        columns={finalColumns}
-        dataSource={documents}
-        pagination={pagination}
-        rowSelection={rowSelection}
-        className={styles.documentTable}
-        scroll={{ scrollToFirstRowOnChange: true, x: 1300 }}
-      />
+      <div className={styles.thumbnailContainer}>
+        {documents?.map((doc) => (
+          <div key={doc.id} className={styles.thumbnailItem}>
+            {doc.thumbnail ? (
+              <img src={doc.thumbnail} alt={doc.name} className={styles.thumbnailImage} />
+            ) : (
+              <SvgIcon
+                name={`file-icon/${getExtension(doc.name)}`}
+                width={48}
+                className={styles.thumbnailIcon}
+              />
+            )}
+            <div className={styles.thumbnailName}>{doc.name}</div>
+            <div className={styles.actionButtons}>
+              <ParsingActionCell
+                setCurrentRecord={setRecord}
+                showRenameModal={showRenameModal}
+                showChangeParserModal={showChangeParserModal}
+                showSetMetaModal={showSetMetaModal}
+                record={doc}  
+              ></ParsingActionCell>
+            </div>
+          </div>
+        ))}
+      </div>
       <CreateFileModal
         visible={createVisible}
         hideModal={hideCreateModal}
@@ -249,4 +178,38 @@ const KnowledgeFile = () => {
   );
 };
 
-export default KnowledgeFile;
+const FloatingQuestionDialog = () => {
+  const [question, setQuestion] = useState('');
+  const { t } = useTranslation('translation', {
+    keyPrefix: 'knowledgeDetails',
+  });
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 20,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '70%',
+      padding: 16,
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      zIndex: 1000
+    }}>
+      <Input
+        placeholder={t('baseOnKnowledge')}
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+      />
+    </div>
+  );
+};
+
+export default function KnowledgeFilePage() {
+  return (
+    <>
+      <KnowledgeFile />
+      <FloatingQuestionDialog />
+    </>
+  );
+}
