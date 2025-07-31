@@ -24,7 +24,6 @@ const KnowledgeBaseChatWidget = () => {
 
   // 为发送按钮创建一个更健壮的点击处理器
   const handleSendClick = (e: React.MouseEvent) => {
-    debugger
     e.stopPropagation(); // 阻止事件冒泡到父级的 onClick，防止冲突
     handleSendMessage();
   };
