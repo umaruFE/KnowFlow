@@ -3,6 +3,8 @@ import { useSearchParams } from 'umi';
 import { useMutation } from '@tanstack/react-query';
 import { message } from 'antd';
 import knowledgeBaseService from '@/services/knowledge-base-service';
+// ▼▼▼ 核心修复：引入一个用于生成ID的工具函数 ▼▼▼
+import { getConversationId } from '@/utils/chat';
 
 // 定义消息类型接口
 interface Message {
@@ -48,21 +50,22 @@ export const useKnowledgeBaseChat = () => {
     mutationFn: async (knowledgeBaseId: string) => {
       console.log('[调试] 5a. initializeSessionMutation.mutate() 已被调用，参数 kbId:', knowledgeBaseId);
       
-      // ▼▼▼ 核心修复：构建一个完全符合后端 IDialog 结构的参数对象 ▼▼▼
       const dialogPayload = {
-        dialog_id: '', // 对于新建操作，通常传递空字符串
+        dialog_id: '',
         name: `Temp_Dialog_For_KB_${knowledgeBaseId}_${Date.now()}`,
         description: `Temporary chat for knowledge base: ${knowledgeBaseId}`,
         icon: "",
         kb_ids: [knowledgeBaseId],
         llm_id: 'fastchat-api_chatglm3-6b',
-        prompt_type: 'simple', // 添加一个默认的 prompt_type
         prompt_config: {
           system: "You are a helpful AI assistant. You will answer user's questions based on the context provided. If you don't know the answer, just say you don't know. Don't make up an answer.",
           prologue: "Hi, how can I help you?",
-          parameters: [{ key: "temperature", value: 0.9 }, { key: "top_p", value: 0.9 }, { key: "max_tokens", value: 2048 }]
+          parameters: [
+            { key: "temperature", value: 0.9, optional: true }, 
+            { key: "top_p", value: 0.9, optional: true }, 
+            { key: "max_tokens", value: 2048, optional: true }
+          ]
         },
-        optional: {}, // 确保这个字段存在，以修复 KeyError
       };
 
       console.log('[调试] 准备发送创建Dialog的请求，Payload:', dialogPayload);
@@ -72,29 +75,28 @@ export const useKnowledgeBaseChat = () => {
       
       console.log('[调试] 步骤1 API响应 (dialogRes):', dialogRes);
       
-      const tempDialogId = dialogRes?.data?.id; 
+      const tempDialogId = dialogRes?.data?.data?.id; 
       
       if (!tempDialogId) {
         throw new Error("未能从创建Dialog的API响应中获取ID。");
       }
       dialogIdRef.current = tempDialogId;
 
+      // ▼▼▼ 核心修复：在调用API前，先生成一个新的对话ID ▼▼▼
+      const newConversationId = getConversationId();
+
       // 步骤2: 为这个 Dialog 创建一个对话
       const conversationRes = await knowledgeBaseService.createConversation({
+        conversation_id: newConversationId, // 将新生成的ID发送给后端
         dialog_id: tempDialogId,
         name: 'Initial Conversation',
         is_new: true,
-        optional: {},
       });
 
       console.log('[调试] 步骤2 API响应 (conversationRes):', conversationRes);
       
-      const tempConversationId = conversationRes?.data?.id;
-
-      if (!tempConversationId) {
-        throw new Error("未能从创建Conversation的API响应中获取ID。");
-      }
-      return tempConversationId;
+      // 直接返回我们自己生成的ID，不再依赖后端的返回
+      return newConversationId;
     },
     onSuccess: (newConversationId) => {
       console.log('✅ 对话初始化成功，ID:', newConversationId);
@@ -119,7 +121,7 @@ export const useKnowledgeBaseChat = () => {
     },
     onSuccess: (response) => {
       console.log('[调试] 7b. ✅ 消息发送成功，收到回复。');
-      const answer = response?.data?.answer;
+      const answer = response?.data?.data?.answer;
       if (answer) {
         const assistantMessage: Message = { role: 'assistant', content: answer };
         setMessages((prev) => [...prev, assistantMessage]);

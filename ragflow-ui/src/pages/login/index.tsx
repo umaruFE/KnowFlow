@@ -139,9 +139,9 @@ const Login = () => {
                     block
                     size="large"
                     onClick={() => handleLoginWithChannel(item.channel)}
-                    style={{ marginTop: 10 }}
+                    style={{ marginTop: 10}}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center"style={{justifyContent: 'center'}}>
                       {item.display_name}
                     </div>
                   </Button>
