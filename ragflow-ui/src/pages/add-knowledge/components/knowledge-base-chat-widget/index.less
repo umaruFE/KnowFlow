@@ -1,0 +1,152 @@
+// 根容器，固定在屏幕底部
+.chatWidgetContainer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 720px;
+  z-index: 1000;
+  
+  // 使用 flex 布局，并让子元素从上往下堆叠
+  display: flex;
+  flex-direction: column;
+
+  // 将圆角和阴影应用到主容器上，使其在所有状态下都保持一致
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.1);
+
+  // 当窗口打开时，给整个容器添加描边
+  &.isOpen {
+    border: 1px solid #f0f0f0;
+    border-bottom: none;
+  }
+}
+
+// 聊天历史面板 (向上滑动的部分)
+.chatPanel {
+  background: #ffffff;
+  // 移除此处的圆角和阴影，因为它们已移至父容器
+  overflow: hidden; // 隐藏动画中溢出的内容
+  display: flex;
+  flex-direction: column;
+  order: 1;
+  // 新增：确保聊天面板本身也具有圆角，以匹配容器
+  border-radius: 12px 12px 0 0;
+
+  // 默认状态：完全折叠，不可见
+  height: 0;
+  opacity: 0;
+  transition: height 0.35s ease-in-out, opacity 0.3s ease-in-out;
+  visibility: hidden;
+
+  // 当父容器有 .isOpen 类时，展开面板
+  .isOpen & {
+    height: 70vh; 
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// 始终可见的输入区域
+.inputArea {
+  background-color: #fff;
+  padding: 12px 20px;
+  border-top: none;
+  display: flex;
+  align-items: center; // 默认垂直居中对齐
+  gap: 8px;
+  cursor: pointer; // 明确显示为可点击
+  flex-shrink: 0; // 防止被 flex 布局压缩
+  order: 2;
+  transition: padding 0.3s ease-in-out; // 为内边距添加过渡效果
+
+  // 当聊天面板关闭时，减少内边距使其更紧凑
+  .chatWidgetContainer:not(.isOpen) & {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  // 当聊天面板打开时，才显示上边框作为分割线，并改为底部对齐以适应多行输入
+  .chatWidgetContainer.isOpen & {
+    border-top: 1px solid #f0f0f0;
+    align-items: flex-end;
+  }
+}
+
+/* --- 以下为组件内部样式 --- */
+
+.drawerHeader {
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  span {
+    font-weight: 500;
+    font-size: 16px;
+  }
+}
+
+.messageList {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 16px;
+  .ant-list-item {
+    border: none;
+    padding: 8px 0;
+    display: flex;
+  }
+  .messageContent {
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 80%;
+  }
+  .assistantMessage {
+    .messageContent {
+      background-color: #f0f2f5;
+    }
+  }
+  .userMessage {
+    flex-direction: row-reverse;
+    .messageContent {
+      background-color: #e6f7ff;
+    }
+  }
+}
+
+.loadingSpinner {
+  text-align: center;
+  padding: 16px;
+}
+
+.chatInput {
+  :global(.ant-input) {
+    border-radius: 8px;
+  }
+
+  // 当聊天面板关闭时，将输入框的样式变得像一个按钮标签
+  .chatWidgetContainer:not(.isOpen) & {
+    :global(.ant-input) {
+      background-color: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      cursor: pointer;
+      text-align: center;
+      // 让提示文字更像标题
+      &::placeholder {
+        color: #333;
+        font-size: 15px;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.sendButtonHidden {
+  display: none !important;
+}
+
+.sendButtonVisible {
+  display: block !important;
+}

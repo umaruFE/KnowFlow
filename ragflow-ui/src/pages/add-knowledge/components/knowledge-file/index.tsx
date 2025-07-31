@@ -33,6 +33,7 @@ import { IDocumentInfo } from '@/interfaces/database/document';
 import { formatDate } from '@/utils/date';
 import styles from './index.less';
 import { SetMetaModal } from './set-meta-modal';
+import KnowledgeBaseChatWidget from '../knowledge-base-chat-widget'; 
 
 const { Text } = Typography;
 
@@ -209,7 +210,9 @@ export default function KnowledgeFilePage() {
   return (
     <>
       <KnowledgeFile />
-      <FloatingQuestionDialog />
+      {/* <FloatingQuestionDialog /> */}
+      <KnowledgeBaseChatWidget />
+
     </>
   );
 }
