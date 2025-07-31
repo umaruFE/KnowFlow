@@ -1,10 +1,14 @@
-import { useLogin, useRegister } from '@/hooks/login-hooks';
 import { rsaPsw } from '@/utils';
 import { Button, Form, Input } from 'antd';
 import { useEffect, useState } from 'react';
 import { Icon, useNavigate } from 'umi';
 // import RightPanel from './right-panel';
-
+import {
+  useLogin,
+  useLoginChannels,
+  useLoginWithChannel,
+  useRegister,
+} from '@/hooks/login-hooks';
 import { Domain } from '@/constants/common';
 import styles from './index.less';
 import { appName } from '@/conf.json';
@@ -14,8 +18,12 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, loading: signLoading } = useLogin();
   const { register, loading: registerLoading } = useRegister();
+  
+  const { channels, loading: channelsLoading } = useLoginChannels();
+    const { login: loginWithChannel, loading: loginWithChannelLoading } =
+    useLoginWithChannel();
   // const { t } = useTranslation('translation', { keyPrefix: 'login' });
-  const loading = signLoading || registerLoading;
+  const loading = signLoading || registerLoading || channelsLoading||loginWithChannelLoading;
 
   const changeTitle = () => {
     setTitle((title) => (title === 'login' ? 'register' : 'login'));
@@ -25,6 +33,10 @@ const Login = () => {
   useEffect(() => {
     form.validateFields(['nickname']);
   }, [form]);
+
+  const handleLoginWithChannel = async (channel: string) => {
+    await loginWithChannel(channel);
+  };
 
   const onCheck = async () => {
     try {
@@ -73,12 +85,6 @@ const Login = () => {
               <div className={styles.logo}></div>
               <div className={styles.name}>{appName}</div>
             </div>
-            <span>
-              {/* {title === 'login' ? '很高兴再次见到您' : '很高兴您加入'} */}
-              {/* {title === 'login'
-                ? t('loginDescription')
-                : t('registerDescription')} */}
-            </span>
           </div>
 
           <Form
@@ -90,7 +96,6 @@ const Login = () => {
             <Form.Item
               {...formItemLayout}
               name="email"
-              // label={t('emailLabel')}
               rules={[{ required: true, message: '请输入邮箱地址' }]}
             >
               <Input size="large" placeholder="请输入邮箱地址" />
@@ -99,7 +104,6 @@ const Login = () => {
               <Form.Item
                 {...formItemLayout}
                 name="nickname"
-                // label={t('nicknameLabel')}
                 rules={[{ required: true, message: '请输入昵称' }]}
               >
                 <Input size="large" placeholder="请输入昵称" />
@@ -108,7 +112,6 @@ const Login = () => {
             <Form.Item
               {...formItemLayout}
               name="password"
-              // label={t('passwordLabel')}
               rules={[{ required: true, message: '请输入密码' }]}
             >
               <Input.Password
@@ -117,29 +120,6 @@ const Login = () => {
                 onPressEnter={onCheck}
               />
             </Form.Item>
-            {/* {title === 'login' && (
-              <Form.Item name="remember" valuePropName="checked">
-                <Checkbox> 记住我</Checkbox>
-              </Form.Item>
-            )} */}
-            <div>
-              {/* {title === 'login' && (
-                <div>
-                  {'没有账号?'}
-                  <Button type="link" onClick={changeTitle}>
-                    {'注册'}
-                  </Button>
-                </div>
-              )} */}
-              {/* {title === 'register' && (
-                <div>
-                  {'已有账号?'}
-                  <Button type="link" onClick={changeTitle}>
-                    {'去登录'}
-                  </Button>
-                </div>
-              )} */}
-            </div>
             <Button
               type="primary"
               block
@@ -149,46 +129,27 @@ const Login = () => {
             >
               {title === 'login' ? '登录' : '注册'}
             </Button>
-            {title === 'login' && (
-              <>
-                {/* <Button
-                  block
-                  size="large"
-                  onClick={toGoogle}
-                  style={{ marginTop: 15 }}
-                >
-                  <div>
-                    <Icon
-                      icon="local:google"
-                      style={{ verticalAlign: 'middle', marginRight: 5 }}
-                    />
-                    Sign in with Google
-                  </div>
-                </Button> */}
-                {location.host === Domain && (
+          </Form>
+          <div style={{marginTop: 10, textAlign: 'center', color: '#999'}}>您也可以通过以下方式登录</div>
+          { channels && channels.length > 0 && (
+              <div>
+                {channels.map((item) => (
                   <Button
+                    key={item.channel}
                     block
                     size="large"
-                    onClick={toGoogle}
-                    style={{ marginTop: 15 }}
+                    onClick={() => handleLoginWithChannel(item.channel)}
+                    style={{ marginTop: 10 }}
                   >
                     <div className="flex items-center">
-                      <Icon
-                        icon="local:github"
-                        style={{ verticalAlign: 'middle', marginRight: 5 }}
-                      />
-                      Sign in with Github
+                      {item.display_name}
                     </div>
                   </Button>
-                )}
-              </>
+                ))}
+              </div>
             )}
-          </Form>
         </div>
       </div>
-      {/* <div className={styles.loginRight}>
-        <RightPanel></RightPanel>
-      </div> */}
     </div>
   );
 };
