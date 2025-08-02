@@ -3,14 +3,22 @@ import { useSearchParams } from 'umi';
 import { useMutation } from '@tanstack/react-query';
 import { message } from 'antd';
 import knowledgeBaseService from '@/services/knowledge-base-service';
+// ▼▼▼ 核心修复：引入 chatService 以便使用其删除功能 ▼▼▼
+import chatService from '@/services/chat-service';
 import { getConversationId } from '@/utils/chat';
-import api from '@/utils/api'; // 引入api配置文件以获取URL
+import api from '@/utils/api';
 
 // 定义消息类型接口
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  thinking?: string; // 新增：用于存放思考过程
+  thinking?: string;
+}
+
+// 定义存储在 sessionStorage 中的数据结构
+interface SessionChatInfo {
+  dialogId: string;
+  conversationId: string;
 }
 
 export const useKnowledgeBaseChat = () => {
@@ -30,27 +38,71 @@ export const useKnowledgeBaseChat = () => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const inputRef = useRef<any>(null);
 
+  // 在组件加载时，尝试从 sessionStorage 恢复对话
   useEffect(() => {
-    if (!kbId) {
-      console.error('[调试] 严重错误: 未能从URL中获取到知识库ID (kbId)。');
+    if (kbId) {
+      const sessionKey = `knowledge-chat-${kbId}`;
+      const storedSession = sessionStorage.getItem(sessionKey);
+      if (storedSession) {
+        try {
+          const sessionInfo: SessionChatInfo = JSON.parse(storedSession);
+          if (sessionInfo.dialogId && sessionInfo.conversationId) {
+            console.log(`[调试] 从 sessionStorage 成功恢复对话，ID: ${sessionInfo.conversationId}`);
+            dialogIdRef.current = sessionInfo.dialogId;
+            conversationIdRef.current = sessionInfo.conversationId;
+          }
+        } catch (e) {
+          console.error("解析 sessionStorage 失败:", e);
+          sessionStorage.removeItem(sessionKey);
+        }
+      }
     }
   }, [kbId]);
 
-  console.log(`[调试] 2. Hook 初始状态: kbId=${kbId}, isOpen=${isOpen}`);
+  // 在组件卸载时，自动清理临时对话
+  useEffect(() => {
+    return () => {
+      const sessionKey = `knowledge-chat-${kbId}`;
+      const storedSession = sessionStorage.getItem(sessionKey);
+
+      if (storedSession) {
+        try {
+          const sessionInfo: SessionChatInfo = JSON.parse(storedSession);
+          const { dialogId, conversationId } = sessionInfo;
+
+          if (dialogId && conversationId) {
+            console.log(`[调试] 页面卸载，准备清理临时对话... Dialog ID: ${dialogId}`);
+            
+            // ▼▼▼ 核心修复：使用 chatService 中已有的删除方法 ▼▼▼
+            chatService.removeConversation({
+              conversationIds: [conversationId],
+              dialogId: dialogId,
+            }).catch(err => console.error("清理 conversation 失败:", err));
+
+            chatService.removeDialog({
+              dialogIds: [dialogId],
+            }).catch(err => console.error("清理 dialog 失败:", err));
+            // ▲▲▲ 核心修复：使用 chatService 中已有的删除方法 ▲▲▲
+
+            sessionStorage.removeItem(sessionKey);
+            console.log(`[调试] 清理 sessionStorage key: ${sessionKey}`);
+          }
+        } catch (e) {
+          console.error("解析或清理 sessionStorage 失败:", e);
+        }
+      }
+    };
+  }, [kbId]);
 
   useEffect(() => {
     if (isOpen) {
-      console.log('[调试] useEffect 触发: 面板已打开，准备滚动和聚焦。');
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       inputRef.current?.focus();
     }
   }, [messages, isOpen]);
 
-  // --- 调试阶段 2: Mutation 定义 ---
   const initializeSessionMutation = useMutation({
     mutationFn: async (knowledgeBaseId: string) => {
-      console.log('[调试] 5a. initializeSessionMutation.mutate() 已被调用，参数 kbId:', knowledgeBaseId);
-      
       const dialogPayload = {
         dialog_id: '',
         name: `Temp_Dialog_For_KB_${knowledgeBaseId}_${Date.now()}`,
@@ -69,54 +121,46 @@ export const useKnowledgeBaseChat = () => {
         },
       };
 
-      console.log('[调试] 准备发送创建Dialog的请求，Payload:', dialogPayload);
-
-      // 步骤1: 调用 createTemporaryDialog
       const dialogRes = await knowledgeBaseService.createTemporaryDialog(dialogPayload);
-      
-      console.log('[调试] 步骤1 API响应 (dialogRes):', dialogRes);
-      
       const tempDialogId = dialogRes?.data?.data?.id; 
       
-      if (!tempDialogId) {
-        throw new Error("未能从创建Dialog的API响应中获取ID。");
-      }
-      dialogIdRef.current = tempDialogId;
-
+      if (!tempDialogId) throw new Error("未能从创建Dialog的API响应中获取ID。");
+      
       const newConversationId = getConversationId();
-
-      // 步骤2: 为这个 Dialog 创建一个对话
-      const conversationRes = await knowledgeBaseService.createConversation({
+      await knowledgeBaseService.createConversation({
         conversation_id: newConversationId,
         dialog_id: tempDialogId,
         name: 'Initial Conversation',
         is_new: true,
       });
 
-      console.log('[调试] 步骤2 API响应 (conversationRes):', conversationRes);
-      
-      return newConversationId;
+      return { dialogId: tempDialogId, conversationId: newConversationId };
     },
-    onSuccess: (newConversationId) => {
-      console.log('✅ 对话初始化成功，ID:', newConversationId);
-      conversationIdRef.current = newConversationId;
+    onSuccess: (sessionInfo) => {
+      console.log('✅ 新对话初始化成功，ID:', sessionInfo.conversationId);
+      dialogIdRef.current = sessionInfo.dialogId;
+      conversationIdRef.current = sessionInfo.conversationId;
+
+      if (kbId) {
+        const sessionKey = `knowledge-chat-${kbId}`;
+        sessionStorage.setItem(sessionKey, JSON.stringify(sessionInfo));
+      }
+
       setMessages([{ role: 'assistant', content: `你好！关于此知识库的问题，随时可以问我。` }]);
     },
     onError: (error: any) => {
       console.error('❌ 对话初始化失败:', error);
-      const errorMessage = error.message || "未知错误，请检查API配置。";
-      message.error(`对话创建失败: ${errorMessage}`);
+      message.error(`对话创建失败: ${error.message || "未知错误"}`);
     },
   });
 
-  // 新增：用于解析思考过程和最终答案的辅助函数
   const parseThinkingAndAnswer = (rawText: string): { thinking: string | null; answer: string } => {
     const thinkTagStart = '<think>';
     const thinkTagEnd = '</think>';
     const startIndex = rawText.indexOf(thinkTagStart);
     const endIndex = rawText.lastIndexOf(thinkTagEnd);
 
-    if (startIndex !== -1 && endIndex !== -1) {
+    if (startIndex !== -1 && endIndex > startIndex) {
       const thinking = rawText.substring(startIndex + thinkTagStart.length, endIndex).trim();
       const answer = rawText.substring(endIndex + thinkTagEnd.length).trim();
       return { thinking, answer };
@@ -127,7 +171,6 @@ export const useKnowledgeBaseChat = () => {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (params: { conversationId: string; query: string }) => {
-      // 在UI上添加一个空的助手消息占位符，包含 thinking 字段
       setMessages((prev) => [...prev, { role: 'assistant', content: '', thinking: '' }]);
 
       const payload = {
@@ -147,59 +190,60 @@ export const useKnowledgeBaseChat = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.body) throw new Error('Response body is null');
 
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
-
+      // ▼▼▼ 核心修复：使用缓冲区来处理不完整的流数据块 ▼▼▼
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n\n');
+        buffer += decoder.decode(value, { stream: true });
+        const boundary = '\n\n';
+        let boundaryIndex = buffer.indexOf(boundary);
 
-        for (const line of lines) {
-          if (line.startsWith('data:')) {
+        while (boundaryIndex !== -1) {
+          const message = buffer.substring(0, boundaryIndex);
+          buffer = buffer.substring(boundaryIndex + boundary.length);
+
+          if (message.startsWith('data:')) {
             try {
-              const jsonStr = line.substring(5);
+              const jsonStr = message.substring(5);
               if (jsonStr) {
                 const parsedData = JSON.parse(jsonStr);
                 if (parsedData.data && parsedData.data.answer) {
                   const rawAnswer = parsedData.data.answer;
-                  // ▼▼▼ 核心修复：使用新函数解析思考过程和答案 ▼▼▼
                   const { thinking, answer } = parseThinkingAndAnswer(rawAnswer);
                   
                   setMessages((prev) => {
                     const newMessages = [...prev];
                     const lastMessage = newMessages[newMessages.length - 1];
-                    lastMessage.content = answer; // 更新最终答案
+                    lastMessage.content = answer; 
                     if (thinking) {
-                      lastMessage.thinking = thinking; // 更新思考过程
+                      lastMessage.thinking = thinking; 
                     }
                     return newMessages;
                   });
-                  // ▲▲▲ 核心修复：使用新函数解析思考过程和答案 ▲▲▲
                 }
               }
             } catch (e) {
-              console.error('Error parsing stream chunk:', e, 'Chunk:', line);
+              console.error('Error parsing stream chunk:', e, 'Chunk:', message);
             }
           }
+          boundaryIndex = buffer.indexOf(boundary);
         }
       }
+      // ▲▲▲ 核心修复：使用缓冲区来处理不完整的流数据块 ▲▲▲
     },
     onSuccess: () => {
-      console.log('[调试] 7b. ✅ 消息流接收完毕。');
+      console.log('✅ 消息流接收完毕。');
     },
     onError: (error) => {
-      console.error('[调试] 7c. ❌ 消息发送/流处理失败:', error);
+      console.error('❌ 消息发送/流处理失败:', error);
       message.error('消息发送失败。');
       setMessages((prev) => prev.slice(0, -1));
     },
@@ -207,10 +251,7 @@ export const useKnowledgeBaseChat = () => {
 
   const isLoading = initializeSessionMutation.isPending || sendMessageMutation.isPending;
 
-  // --- 调试阶段 3: 事件处理器定义 ---
   const handleOpen = useCallback(() => {
-    console.log('[调试] 4. handleOpen 函数被调用。');
-    
     if (!kbId) {
       message.error('无法初始化对话：未在URL中找到知识库ID。');
       return;
@@ -219,7 +260,6 @@ export const useKnowledgeBaseChat = () => {
     if (!isOpen) {
       setIsOpen(true);
       if (!conversationIdRef.current) {
-        console.log('[调试] 5. 条件满足，准备调用 initializeSessionMutation...');
         initializeSessionMutation.mutate(kbId);
       }
     }
@@ -228,24 +268,19 @@ export const useKnowledgeBaseChat = () => {
   const handleClose = useCallback(() => setIsOpen(false), []);
 
   const handleSendMessage = useCallback(() => {
-    console.log('[调试] 6. handleSendMessage 函数被调用。');
     const currentConversationId = conversationIdRef.current;
-    if (!inputValue.trim() || !currentConversationId || isLoading) {
-      console.log(`[调试] 发送被阻止: 输入="${inputValue}", 对话ID=${currentConversationId}, 加载中=${isLoading}`);
-      return;
-    }
+    if (!inputValue.trim() || !currentConversationId || isLoading) return;
+    
     const messageToSend = inputValue;
     setMessages((prev) => [...prev, { role: 'user', content: messageToSend }]);
     setInputValue('');
     
-    console.log('[调试] 7. 条件满足，准备调用 sendMessageMutation...');
     sendMessageMutation.mutate({
       conversationId: currentConversationId,
       query: messageToSend,
     });
   }, [inputValue, isLoading, sendMessageMutation]);
   
-  console.log('[调试] 3. Hook 准备返回所有状态和函数。');
   return {
     isOpen,
     messages,
