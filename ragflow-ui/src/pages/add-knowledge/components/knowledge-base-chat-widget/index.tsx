@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { Input, Button, List, Avatar, Spin, Divider } from 'antd';
 import {
   UserOutlined,
   RobotOutlined,
   CloseOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
+import classNames from 'classnames';
 import { useKnowledgeBaseChat } from '@/hooks/knowledge-base-hooks';
 import styles from './index.less';
-import classNames from 'classnames';
 
 const KnowledgeBaseChatWidget = () => {
   const {
@@ -22,9 +24,19 @@ const KnowledgeBaseChatWidget = () => {
     setInputValue,
   } = useKnowledgeBaseChat();
 
-  // 为发送按钮创建一个更健壮的点击处理器
+  // New state to manage which message's thinking process is expanded
+  const [expandedThinking, setExpandedThinking] = useState<Record<number, boolean>>({});
+
+  // New function to toggle the visibility of the thinking process for a specific message
+  const toggleThinking = (index: number) => {
+    setExpandedThinking((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
   const handleSendClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 阻止事件冒泡到父级的 onClick，防止冲突
+    e.stopPropagation();
     handleSendMessage();
   };
 
@@ -43,7 +55,7 @@ const KnowledgeBaseChatWidget = () => {
         <List
           className={styles.messageList}
           dataSource={messages}
-          renderItem={(item) => (
+          renderItem={(item, index) => (
             <List.Item
               className={
                 item.role === 'user'
@@ -54,7 +66,29 @@ const KnowledgeBaseChatWidget = () => {
               <Avatar
                 icon={item.role === 'user' ? <UserOutlined /> : <RobotOutlined />}
               />
-              <div className={styles.messageContent}>{item.content}</div>
+              <div className={styles.messageBubble}>
+                <div className={styles.messageContent}>{item.content}</div>
+                {/* Conditionally render the "Show thought process" button */}
+                {item.role === 'assistant' && item.thinking && (
+                  <div className={styles.thinkingToggleContainer}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ExperimentOutlined />}
+                      onClick={() => toggleThinking(index)}
+                      className={styles.thinkingToggleButton}
+                    >
+                      显示思路
+                    </Button>
+                  </div>
+                )}
+                {/* Conditionally render the thinking process content */}
+                {expandedThinking[index] && (
+                  <div className={styles.thinkingProcess}>
+                    {item.thinking}
+                  </div>
+                )}
+              </div>
             </List.Item>
           )}
         >
@@ -85,9 +119,7 @@ const KnowledgeBaseChatWidget = () => {
         />
         <Button
           type="primary"
-          // ▼▼▼ 核心修复：使用新的点击处理器 ▼▼▼
           onClick={handleSendClick}
-          // ▲▲▲ 核心修复：使用新的点击处理器 ▲▲▲
           loading={isLoading}
           disabled={!inputValue.trim()}
           className={

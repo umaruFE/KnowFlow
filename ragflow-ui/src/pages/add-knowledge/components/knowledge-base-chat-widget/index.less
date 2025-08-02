@@ -26,21 +26,17 @@
 // 聊天历史面板 (向上滑动的部分)
 .chatPanel {
   background: #ffffff;
-  // 移除此处的圆角和阴影，因为它们已移至父容器
-  overflow: hidden; // 隐藏动画中溢出的内容
+  overflow: hidden; 
   display: flex;
   flex-direction: column;
   order: 1;
-  // 新增：确保聊天面板本身也具有圆角，以匹配容器
   border-radius: 12px 12px 0 0;
 
-  // 默认状态：完全折叠，不可见
   height: 0;
   opacity: 0;
   transition: height 0.35s ease-in-out, opacity 0.3s ease-in-out;
   visibility: hidden;
 
-  // 当父容器有 .isOpen 类时，展开面板
   .isOpen & {
     height: 70vh; 
     opacity: 1;
@@ -54,20 +50,18 @@
   padding: 12px 20px;
   border-top: none;
   display: flex;
-  align-items: center; // 默认垂直居中对齐
+  align-items: center; 
   gap: 8px;
-  cursor: pointer; // 明确显示为可点击
-  flex-shrink: 0; // 防止被 flex 布局压缩
+  cursor: pointer; 
+  flex-shrink: 0; 
   order: 2;
-  transition: padding 0.3s ease-in-out; // 为内边距添加过渡效果
+  transition: padding 0.3s ease-in-out; 
 
-  // 当聊天面板关闭时，减少内边距使其更紧凑
   .chatWidgetContainer:not(.isOpen) & {
     padding-top: 16px;
     padding-bottom: 16px;
   }
 
-  // 当聊天面板打开时，才显示上边框作为分割线，并改为底部对齐以适应多行输入
   .chatWidgetContainer.isOpen & {
     border-top: 1px solid #f0f0f0;
     align-items: flex-end;
@@ -96,15 +90,37 @@
     border: none;
     padding: 8px 0;
     display: flex;
+    align-items: flex-start; // 保持头像顶部对齐
+    width: 100%; // 确保列表项占满宽度
+
+    // ▼▼▼ 核心修复：防止头像被挤压 ▼▼▼
+    :global(.ant-avatar) {
+      flex-shrink: 0;
+    }
+    // ▲▲▲ 核心修复：防止头像被挤压 ▲▲▲
   }
+
+  .messageBubble {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    margin-left: 8px;
+  }
+  
+  .userMessage .messageBubble {
+    margin-left: 0;
+    margin-right: 8px;
+  }
+
   .messageContent {
     padding: 8px 12px;
     border-radius: 12px;
-    max-width: 80%;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
+
   .assistantMessage {
     justify-content: flex-start;
-    gap: 8px;
     .messageContent {
       background-color: #f0f2f5;
     }
@@ -112,13 +128,53 @@
   
   .userMessage {
     flex-direction: row-reverse;
-    justify-content: end;
-    gap: 8px;
+    // ▼▼▼ 核心修复：移除有问题的对齐方式 ▼▼▼
+    // justify-content: flex-end; 
+    
+    // ▼▼▼ 新增：使用 margin-left: auto 将整个消息体推到右侧 ▼▼▼
+    margin-left: auto;
+    width: fit-content; // 让容器宽度自适应内容
+    
+    .messageBubble {
+      align-items: flex-end;
+    }
     .messageContent {
       background-color: #e6f7ff;
     }
   }
 }
+
+// --- “显示思路”相关样式 ---
+.thinkingToggleContainer {
+  text-align: left;
+  margin-top: 4px;
+}
+
+.userMessage .thinkingToggleContainer {
+  text-align: right;
+}
+
+.thinkingToggleButton {
+  padding: 0 4px;
+  height: 22px;
+  font-size: 12px;
+  color: #888;
+}
+
+.thinkingProcess {
+  margin-top: 8px;
+  padding: 10px;
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #555;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+// --- 结束“显示思路”样式 ---
 
 .loadingSpinner {
   text-align: center;
@@ -130,7 +186,6 @@
     border-radius: 8px;
   }
 
-  // 当聊天面板关闭时，将输入框的样式变得像一个按钮标签
   .chatWidgetContainer:not(.isOpen) & {
     :global(.ant-input) {
       background-color: transparent !important;
@@ -138,7 +193,6 @@
       box-shadow: none !important;
       cursor: pointer;
       text-align: center;
-      // 让提示文字更像标题
       &::placeholder {
         color: #333;
         font-size: 15px;

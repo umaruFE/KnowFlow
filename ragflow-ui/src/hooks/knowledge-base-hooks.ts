@@ -3,13 +3,14 @@ import { useSearchParams } from 'umi';
 import { useMutation } from '@tanstack/react-query';
 import { message } from 'antd';
 import knowledgeBaseService from '@/services/knowledge-base-service';
-// ▼▼▼ 核心修复：引入一个用于生成ID的工具函数 ▼▼▼
 import { getConversationId } from '@/utils/chat';
+import api from '@/utils/api'; // 引入api配置文件以获取URL
 
 // 定义消息类型接口
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  thinking?: string; // 新增：用于存放思考过程
 }
 
 export const useKnowledgeBaseChat = () => {
@@ -56,7 +57,7 @@ export const useKnowledgeBaseChat = () => {
         description: `Temporary chat for knowledge base: ${knowledgeBaseId}`,
         icon: "",
         kb_ids: [knowledgeBaseId],
-        llm_id: 'fastchat-api_chatglm3-6b',
+        llm_id: 'DeepSeek-R1-Distill-Qwen-32B___OpenAI-API@OpenAI-API-Compatible',
         prompt_config: {
           system: "You are a helpful AI assistant. You will answer user's questions based on the context provided. If you don't know the answer, just say you don't know. Don't make up an answer.",
           prologue: "Hi, how can I help you?",
@@ -82,12 +83,11 @@ export const useKnowledgeBaseChat = () => {
       }
       dialogIdRef.current = tempDialogId;
 
-      // ▼▼▼ 核心修复：在调用API前，先生成一个新的对话ID ▼▼▼
       const newConversationId = getConversationId();
 
       // 步骤2: 为这个 Dialog 创建一个对话
       const conversationRes = await knowledgeBaseService.createConversation({
-        conversation_id: newConversationId, // 将新生成的ID发送给后端
+        conversation_id: newConversationId,
         dialog_id: tempDialogId,
         name: 'Initial Conversation',
         is_new: true,
@@ -95,7 +95,6 @@ export const useKnowledgeBaseChat = () => {
 
       console.log('[调试] 步骤2 API响应 (conversationRes):', conversationRes);
       
-      // 直接返回我们自己生成的ID，不再依赖后端的返回
       return newConversationId;
     },
     onSuccess: (newConversationId) => {
@@ -110,29 +109,99 @@ export const useKnowledgeBaseChat = () => {
     },
   });
 
+  // 新增：用于解析思考过程和最终答案的辅助函数
+  const parseThinkingAndAnswer = (rawText: string): { thinking: string | null; answer: string } => {
+    const thinkTagStart = '<think>';
+    const thinkTagEnd = '</think>';
+    const startIndex = rawText.indexOf(thinkTagStart);
+    const endIndex = rawText.lastIndexOf(thinkTagEnd);
+
+    if (startIndex !== -1 && endIndex !== -1) {
+      const thinking = rawText.substring(startIndex + thinkTagStart.length, endIndex).trim();
+      const answer = rawText.substring(endIndex + thinkTagEnd.length).trim();
+      return { thinking, answer };
+    }
+    
+    return { thinking: null, answer: rawText };
+  };
+
   const sendMessageMutation = useMutation({
-    mutationFn: (params: { conversationId: string; query: string }) => {
-      console.log('[调试] 7a. sendMessageMutation.mutate() 已被调用，参数:', params);
-      return knowledgeBaseService.completeConversation({
+    mutationFn: async (params: { conversationId: string; query: string }) => {
+      // 在UI上添加一个空的助手消息占位符，包含 thinking 字段
+      setMessages((prev) => [...prev, { role: 'assistant', content: '', thinking: '' }]);
+
+      const payload = {
         conversation_id: params.conversationId,
         dialog_id: dialogIdRef.current,
         messages: [{ role: 'user', content: params.query }],
+      };
+
+      const token = localStorage.getItem('Authorization');
+      
+      const response = await fetch(api.completeConversation, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+        body: JSON.stringify(payload),
       });
-    },
-    onSuccess: (response) => {
-      console.log('[调试] 7b. ✅ 消息发送成功，收到回复。');
-      const answer = response?.data?.data?.answer;
-      if (answer) {
-        const assistantMessage: Message = { role: 'assistant', content: answer };
-        setMessages((prev) => [...prev, assistantMessage]);
-      } else {
-        console.error('未能从发送消息的API响应中解析出 "answer"');
-        message.error('收到回复，但无法解析内容。');
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            try {
+              const jsonStr = line.substring(5);
+              if (jsonStr) {
+                const parsedData = JSON.parse(jsonStr);
+                if (parsedData.data && parsedData.data.answer) {
+                  const rawAnswer = parsedData.data.answer;
+                  // ▼▼▼ 核心修复：使用新函数解析思考过程和答案 ▼▼▼
+                  const { thinking, answer } = parseThinkingAndAnswer(rawAnswer);
+                  
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    lastMessage.content = answer; // 更新最终答案
+                    if (thinking) {
+                      lastMessage.thinking = thinking; // 更新思考过程
+                    }
+                    return newMessages;
+                  });
+                  // ▲▲▲ 核心修复：使用新函数解析思考过程和答案 ▲▲▲
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing stream chunk:', e, 'Chunk:', line);
+            }
+          }
+        }
       }
     },
+    onSuccess: () => {
+      console.log('[调试] 7b. ✅ 消息流接收完毕。');
+    },
     onError: (error) => {
-      console.error('[调试] 7c. ❌ 消息发送失败:', error);
+      console.error('[调试] 7c. ❌ 消息发送/流处理失败:', error);
       message.error('消息发送失败。');
+      setMessages((prev) => prev.slice(0, -1));
     },
   });
 
