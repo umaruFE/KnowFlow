@@ -88,6 +88,17 @@ const KnowledgeBaseChatWidget = () => {
                     {item.thinking}
                   </div>
                 )}
+                {/* Conditionally render document references */}
+                {item.role === 'assistant' && item.reference?.doc_aggs && (
+                  <div className={styles.documentReferences}>
+                    <div className={styles.documentTitle}>参考文档:</div>
+                    {item.reference.doc_aggs.map((doc: any) => (
+                      <div key={doc.doc_id} className={styles.documentItem}>
+                        {doc.doc_name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </List.Item>
           )}

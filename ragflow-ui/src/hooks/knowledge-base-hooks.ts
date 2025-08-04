@@ -246,6 +246,9 @@ export const useKnowledgeBaseChat = () => {
                     if (thinking) {
                       lastMessage.thinking = thinking.replace(/\[(?:IDs|ID:|\s*\d+D\s*:)(?:\s*\d+\s*,?|\s*vary\s*)+\]|\[\s*\d+D\s*:\d+\]/g, ''); 
                     }
+                    if (parsedData.data.reference?.doc_aggs) {
+                      lastMessage.reference = parsedData.data.reference;
+                    }
                     return newMessages;
                   });
                 }
