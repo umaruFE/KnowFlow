@@ -110,16 +110,17 @@ const KnowledgeFile = () => {
         {documents?.map((doc) => (
           <div key={doc.id} className={styles.thumbnailItem}>
             {doc.thumbnail ? (
-              <img src={doc.thumbnail} alt={doc.name} className={styles.thumbnailImage} />
+              <img src={doc.thumbnail} alt={doc.name} className={styles.thumbnailImage}  onClick={() => toChunk(doc.id)} />
             ) : (
               <SvgIcon
                 name={`file-icon/${getExtension(doc.name)}`}
                 width={48}
                 className={styles.thumbnailIcon}
+                 onClick={() => toChunk(doc.id)}
               />
             )}
-            <div className={styles.thumbnailName}>{doc.name}</div>
-            <div className={styles.actionButtons}>
+            <div className={styles.thumbnailName}  onClick={() => toChunk(doc.id)}>{doc.name}</div>
+            <div className={styles.actionButtons} onClick={(e) => e.stopPropagation()}>
               <ParsingActionCell
                 setCurrentRecord={setRecord}
                 showRenameModal={showRenameModal}
