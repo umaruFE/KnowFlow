@@ -101,63 +101,22 @@ export const useFetchNextDialogList = () => {
     queryFn: async (...params) => {
       console.log('🚀 ~ queryFn: ~ params:', params);
       const { data } = await chatService.listDialog();
-      const exist = ['税赋优惠助理', '专项补贴助理', '行业法规助理'];
 
       if (data.code === 0) {
-        const list: IDialog[] = data.data;
-        const notExistList = list.filter((x) => !exist.includes(x.name))
-        if (notExistList.length > 0) {
-          if (notExistList.every((x) => x.id !== dialogId)) {
-            handleClickDialog(data.data[0].id);
+        const list: IDialog[] = data.data.filter(dialog => !dialog.name?.startsWith('Temp_Dialog_For_KB_'));
+        if (list.length > 0) {
+          if (list.every((x) => x.id !== dialogId)) {
+            handleClickDialog(list[0].id);
           }
         } else {
           history.push('/chat');
         }
       }
-      const dataFilter = data.data.filter((x:any) => !exist.includes(x.name))
+      const dataFilter = data.data.filter((x:any) => !x.name?.startsWith('Temp_Dialog_For_KB_'))
       return dataFilter ?? [];
     },
   });
 
-  return { data, loading, refetch };
-};
-
-
-export const useFetchNextDialogListById = (dialogName?: string) => {
-  const { handleClickDialog } = useClickDialogCard();
-  const { dialogId } = useGetChatSearchParams();
-  const {
-    data,
-    isFetching: loading,
-    refetch,
-  } = useQuery<IDialog[]>({
-    queryKey: ['fetchDialogList', dialogId],
-    initialData: [],
-    gcTime: 0,
-    refetchOnWindowFocus: false,
-    queryFn: async (...params) => {
-      console.log('🚀 ~ queryFn: ~ params:', params);
-      const { data } = await chatService.listDialog();
-
-      if (data.code === 0) {
-        const list: IDialog[] = data.data;
-        const existList = list.filter((x) => dialogName === x.name)
-        debugger
-        if (existList.length > 0) {
-          if (existList.every((x) => x.id !== dialogId)) {
-            if(existList[0] && existList[0].id) {
-              handleClickDialog(existList[0].id);
-            }
-          }
-        } else {
-          history.push('/chat');
-        }
-      }
-
-      const dataFilter = data.data.filter((x:any) => dialogName === x.name)
-      return dataFilter ?? [];
-    },
-  });
   return { data, loading, refetch };
 };
 
@@ -173,8 +132,10 @@ export const useFetchChatAppList = () => {
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data } = await chatService.listDialog();
-
-      return data?.data ?? [];
+      
+      return (data?.data ?? []).filter(
+        (dialog: IDialog) => !dialog.name?.startsWith('Temp_Dialog_For_KB_')
+      );
     },
   });
 
